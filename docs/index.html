@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>motion-site — a Claude Code skill</title>
+<meta name="description" content="motion-site is a Claude Code skill for studio-grade motion websites, with a frame-by-frame self-review loop.">
+<meta property="og:title" content="motion-site — motion that means something">
+<script>
+  // Add .motion before first paint so content never flashes before it animates.
+  // Without JS, with reduced motion, or if the CDN fails, everything is visible at once.
+  if (matchMedia("(prefers-reduced-motion: no-preference)").matches) {
+    document.documentElement.classList.add("motion");
+    setTimeout(() => { if (!window.gsap) document.documentElement.classList.remove("motion"); }, 2500);
+  }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Geist:wght@400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lenis@1.3.4/dist/lenis.css">
+<style>
+  /* ===== TOKENS: change things here ===== */
+  :root {
+    --bg: #0a0a0c;
+    --surface: #141418;
+    --text: #f2f1ee;
+    --muted: #8f8e95;
+    --accent: #ff5a1f;
+    --accent-ink: #0a0a0c;
+    --edge: rgba(255,255,255,.09);
+    /* Latin-only display font. For Cyrillic use "Unbounded" — see references/art-directions.md */
+    --font-display: "Bricolage Grotesque", sans-serif;
+    --font-body: "Geist", system-ui, sans-serif;
+    --radius: 28px;
+    --shadow: 0 1px 0 rgba(255,255,255,.06) inset, 0 2px 6px rgba(0,0,0,.25), 0 18px 40px rgba(0,0,0,.35), 0 60px 120px -40px rgba(0,0,0,.7);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font: 18px/1.6 var(--font-body); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  img { display: block; max-width: 100%; }
+  .wrap { width: min(1240px, 100% - 48px); margin-inline: auto; }
+  .display { font-family: var(--font-display); font-weight: 800; font-variation-settings: "opsz" 96; line-height: .92; letter-spacing: -.04em; }
+  .eyebrow { font: 500 14px/1 var(--font-body); letter-spacing: .16em; text-transform: uppercase; color: var(--accent); }
+  .muted { color: var(--muted); }
+
+  /* Living frame: drifting light + film grain. Never a dead frame, always one focus. */
+  .atmo { position: fixed; inset: -25%; z-index: -1; pointer-events: none;
+    background: radial-gradient(35% 30% at 72% 28%, color-mix(in srgb, var(--accent) 14%, transparent), transparent 70%),
+                radial-gradient(30% 28% at 18% 74%, rgba(110,120,255,.08), transparent 70%); }
+  .grain { position: fixed; inset: -50%; z-index: 100; pointer-events: none; opacity: .055;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+  /* ===== HERO ===== */
+  .hero { min-height: 100svh; display: grid; align-content: end; padding: 140px 0 8vh; }
+  .hero h1 { font-size: clamp(48px, 11.5vw, 190px); max-width: 11ch; }
+  .hero-foot { display: flex; justify-content: space-between; align-items: end; gap: 40px; margin-top: 48px; flex-wrap: wrap; }
+  .hero-foot p { max-width: 40ch; font-size: 19px; }
+  .btn { display: inline-flex; align-items: center; gap: 12px; padding: 18px 30px; border-radius: 999px; background: var(--accent);
+         color: var(--accent-ink); font-weight: 700; text-decoration: none; will-change: transform; }
+
+  /* Odometer */
+  .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 8vh; }
+  .stat { padding: 26px; border-radius: 22px; background: var(--surface); border: 1px solid var(--edge); box-shadow: var(--shadow); }
+  .stat b { display: flex; font: 800 clamp(34px, 4.6vw, 64px)/1 var(--font-display); letter-spacing: -.05em; margin-bottom: 10px; }
+  .odo { display: inline-block; height: 1em; overflow: hidden; }
+  .odo-col { display: flex; flex-direction: column; }
+  .odo-col > span { height: 1em; line-height: 1; text-align: center; }
+
+  /* ===== PORTAL SCENE: a card becomes the next screen ===== */
+  .portal { height: 100svh; position: relative; overflow: hidden; }
+  .portal-media { position: absolute; inset: 0; clip-path: inset(14% 18% round var(--radius)); will-change: clip-path; }
+  .portal-media .fill { position: absolute; inset: 0; transform: scale(1.35); will-change: transform;
+    background: radial-gradient(60% 60% at 30% 30%, #ffb38f, transparent 60%), radial-gradient(70% 70% at 80% 70%, #7a5cff, transparent 60%), #1b1430; }
+  .portal-copy { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; }
+  .portal-copy h2 { font-size: clamp(40px, 9vw, 150px); color: #fff; max-width: 10ch; }
+
+  /* ===== HORIZONTAL RAIL ===== */
+  .rail { overflow: hidden; }
+  .rail-head { padding: 16vh 0 6vh; }
+  .rail-head h2 { font-size: clamp(36px, 6vw, 96px); max-width: 12ch; }
+  .rail-track { display: flex; gap: 24px; padding: 0 24px 16vh; width: max-content; will-change: transform; }
+  .rail-card { width: clamp(280px, 34vw, 520px); aspect-ratio: 4/5; border-radius: var(--radius); overflow: hidden; position: relative;
+               background: var(--surface); border: 1px solid var(--edge); box-shadow: var(--shadow); }
+  .rail-card .fill { position: absolute; inset: -10% -20%; will-change: transform; }
+  .rail-card figcaption { position: absolute; left: 24px; bottom: 22px; right: 24px; font: 700 22px/1.2 var(--font-display); letter-spacing: -.03em; }
+  .rail-card:nth-child(1) .fill { background: linear-gradient(140deg, #ff5a1f, #ffb38f); }
+  .rail-card:nth-child(2) .fill { background: linear-gradient(140deg, #232332, #6a6aff); }
+  .rail-card:nth-child(3) .fill { background: linear-gradient(140deg, #d9ff3f, #3fa36b); }
+  .rail-card:nth-child(4) .fill { background: linear-gradient(140deg, #f2f1ee, #a9a6a0); }
+  .rail-card:nth-child(4) figcaption { color: var(--bg); }
+
+  /* ===== CARD STACK ===== */
+  .stack { padding: 10vh 0 20vh; }
+  .stack-card { position: sticky; top: 12vh; min-height: 64vh; margin-bottom: 6vh; border-radius: var(--radius); padding: clamp(28px, 5vw, 64px);
+                background: var(--surface); border: 1px solid var(--edge); box-shadow: var(--shadow);
+                display: grid; grid-template-columns: auto 1fr; gap: 0 clamp(24px, 5vw, 80px); align-items: end;
+                transform-origin: 50% 0; will-change: transform, filter; }
+  .stack-card .n { font: 800 clamp(96px, 16vw, 260px)/.8 var(--font-display); letter-spacing: -.06em; color: var(--accent); align-self: start; }
+  .stack-card h3 { font-size: clamp(30px, 4.4vw, 72px); max-width: 12ch; margin-bottom: 18px; }
+  .stack-card p { max-width: 42ch; }
+  .stack-card:nth-child(2) { background: #1b1b21; } .stack-card:nth-child(3) { background: #222229; }
+
+  /* ===== OUTRO ===== */
+  .outro { min-height: 90svh; display: grid; place-items: center; text-align: center; padding: 20vh 0; }
+  .outro h2 { font-size: clamp(44px, 10vw, 170px); max-width: 10ch; margin: 0 auto 48px; }
+
+  /* Pre-animation state (only with .motion) */
+  .motion [data-split] { visibility: hidden; }
+
+  @media (max-width: 900px) {
+    .stats { grid-template-columns: 1fr; }
+    .rail-track { overflow-x: auto; scroll-snap-type: x mandatory; width: auto; padding-bottom: 10vh; scrollbar-width: none; }
+    .rail-card { flex: 0 0 78vw; scroll-snap-align: center; }
+    .stack-card { min-height: 58vh; grid-template-columns: 1fr; align-content: space-between; }
+  }
+  @media (max-width: 520px) { .wrap { width: calc(100% - 32px); } .btn { width: 100%; justify-content: center; } }
+</style>
+</head>
+<body>
+<div class="atmo"></div>
+<div class="grain"></div>
+
+<main>
+  <section class="hero">
+    <div class="wrap">
+      <p class="eyebrow" data-fade>A skill for Claude Code</p>
+      <h1 class="display" data-split>Motion that means something</h1>
+      <div class="hero-foot">
+        <p class="muted" data-fade>Every element moves for a reason: it guides the eye, explains, and becomes the next idea.</p>
+        <a class="btn" href="#outro" data-fade data-magnet>See how it works →</a>
+      </div>
+      <div class="stats">
+        <div class="stat" data-rise><b data-odo="16"></b><span class="muted">techniques with ready code</span></div>
+        <div class="stat" data-rise><b data-odo="6"></b><span class="muted">art directions</span></div>
+        <div class="stat" data-rise><b data-odo="5"></b><span class="muted">review axes for every scene</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="portal" data-portal>
+    <div class="portal-media"><div class="fill"></div></div>
+    <div class="portal-copy"><h2 class="display" data-split="scrub">One object. One idea.</h2></div>
+  </section>
+
+  <section class="rail" data-rail>
+    <div class="wrap rail-head">
+      <p class="eyebrow" data-fade>Art directions</p>
+      <h2 class="display" data-split>One character per page</h2>
+    </div>
+    <div class="rail-track">
+      <figure class="rail-card"><div class="fill"></div><figcaption>Midnight Launch</figcaption></figure>
+      <figure class="rail-card"><div class="fill"></div><figcaption>Liquid Glass</figcaption></figure>
+      <figure class="rail-card"><div class="fill"></div><figcaption>Neo-Brutal</figcaption></figure>
+      <figure class="rail-card"><div class="fill"></div><figcaption>Editorial</figcaption></figure>
+    </div>
+  </section>
+
+  <section class="stack wrap" data-stack>
+    <article class="stack-card"><span class="n">01</span><div><h3 class="display">Find the one idea</h3><p class="muted">What the visitor must understand and do. Everything else serves it.</p></div></article>
+    <article class="stack-card"><span class="n">02</span><div><h3 class="display">Storyboard the scroll</h3><p class="muted">Five to eight scenes, each with a before → after. One peak moment.</p></div></article>
+    <article class="stack-card"><span class="n">03</span><div><h3 class="display">Review frame by frame</h3><p class="muted">Score every scene and push each one to nine out of ten.</p></div></article>
+  </section>
+
+  <section class="outro" id="outro">
+    <div class="wrap">
+      <h2 class="display" data-split>Your site can move like this</h2>
+      <a class="btn js-gh" href="https://github.com/USERNAME/motion-site" data-fade data-magnet>Get the skill on GitHub →</a>
+    </div>
+  </section>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.3.4/dist/lenis.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
+<script>
+/* ===================== MOTION KIT ===================== */
+const EASE = {
+  enter: "expo.out",          // enter: fast start, long settle
+  exit: "power3.in",          // exit: accelerates away (half the enter time)
+  spring: "back.out(1.2)",    // spring with a small settle, never a bounce
+  move: "power3.inOut",       // travel between states
+};
+const DUR = { enter: 1.1, exit: 0.55, move: 0.9 };
+const STAGGER = { words: 0.09, items: 0.2 };
+
+// Odometer: each digit is a column that rolls and settles on its value
+function buildOdometer(el) {
+  const cols = [];
+  [...el.dataset.odo].forEach(ch => {
+    if (!/\d/.test(ch)) { const s = document.createElement("span"); s.textContent = ch === " " ? " " : ch; el.append(s); return; }
+    const box = document.createElement("span"); box.className = "odo";
+    const col = document.createElement("span"); col.className = "odo-col";
+    const steps = 20 + +ch;
+    for (let i = 0; i <= steps; i++) { const d = document.createElement("span"); d.textContent = i % 10; col.append(d); }
+    box.dataset.digit = ch;
+    box.append(col); el.append(box); cols.push({ col, steps });
+  });
+  return cols;
+}
+
+// Size each column to its final digit, otherwise a narrow "1" looks like a gap
+function fitOdometers() {
+  document.querySelectorAll(".odo").forEach(box => {
+    const probe = document.createElement("span");
+    probe.textContent = box.dataset.digit;
+    box.parentElement.append(probe);
+    box.style.width = probe.getBoundingClientRect().width / parseFloat(getComputedStyle(probe).fontSize) + "em";
+    probe.remove();
+  });
+}
+document.fonts.ready.then(fitOdometers);
+
+const odometers = [...document.querySelectorAll("[data-odo]")].map(buildOdometer);
+
+if (window.gsap) {
+  gsap.registerPlugin(ScrollTrigger, SplitText);
+
+  // Smooth scroll, synced with ScrollTrigger
+  const lenis = new Lenis({ autoRaf: false, lerp: 0.1 });
+  lenis.on("scroll", ScrollTrigger.update);
+  gsap.ticker.add(t => lenis.raf(t * 1000));
+  gsap.ticker.lagSmoothing(0);
+  document.querySelectorAll('a[href^="#"]').forEach(a => a.addEventListener("click", e => {
+    const target = document.querySelector(a.getAttribute("href"));
+    if (target) { e.preventDefault(); lenis.scrollTo(target, { duration: 1.6 }); }
+  }));
+
+  const mm = gsap.matchMedia();
+  mm.add({
+    motion: "(prefers-reduced-motion: no-preference)",
+    desktop: "(min-width: 901px)",
+  }, ctx => {
+    const { motion, desktop } = ctx.conditions;
+    if (!motion) {
+      odometers.flat().forEach(({ col, steps }) => gsap.set(col, { yPercent: -100 * steps / (steps + 1) }));
+      return;
+    }
+
+    // 1. Headlines: words rise out of line masks
+    document.querySelectorAll("[data-split]").forEach(el => {
+      const scrub = el.dataset.split === "scrub";
+      SplitText.create(el, {
+        type: "lines,words", mask: "lines", autoSplit: true,
+        onSplit(self) {
+          gsap.set(el, { visibility: "visible" });
+          const inHero = el.closest(".hero");
+          return gsap.from(self.words, {
+            yPercent: 115, rotate: 3, duration: DUR.enter, ease: EASE.enter, stagger: STAGGER.words,
+            delay: inHero ? 0.2 : 0,
+            scrollTrigger: inHero ? null : scrub
+              ? { trigger: el.closest("section"), start: "top 10%", end: "+=60%", scrub: 1 }
+              : { trigger: el, start: "top 85%" },
+          });
+        },
+      });
+    });
+
+    // 2. Secondary elements: soft rise, 0.2s stagger
+    gsap.utils.toArray("[data-fade]").forEach(el => gsap.from(el, {
+      y: 28, autoAlpha: 0, duration: DUR.enter, ease: EASE.enter,
+      delay: el.closest(".hero") ? 0.9 : 0,
+      scrollTrigger: el.closest(".hero") ? null : { trigger: el, start: "top 90%" },
+    }));
+    gsap.from("[data-rise]", { y: 60, autoAlpha: 0, duration: DUR.enter, ease: EASE.spring, stagger: STAGGER.items, delay: 1.1 });
+    odometers.forEach((cols, i) => cols.forEach(({ col, steps }, j) => gsap.to(col, {
+      yPercent: -100 * steps / (steps + 1), duration: 2 + j * 0.3, ease: EASE.enter, delay: 1.3 + i * STAGGER.items,
+    })));
+
+    // 3. Portal: the card opens to full screen and becomes the scene
+    const portal = document.querySelector("[data-portal]");
+    if (portal) {
+      const tl = gsap.timeline({ scrollTrigger: { trigger: portal, start: "top top", end: desktop ? "+=150%" : "+=80%", scrub: 1, pin: true } });
+      tl.to(portal.querySelector(".portal-media"), { clipPath: "inset(0% 0% round 0px)", ease: "none" })
+        .to(portal.querySelector(".fill"), { scale: 1, ease: "none" }, 0)
+        .to({}, { duration: 0.4 }); // hold the result while it is read
+    }
+
+    // 4. Horizontal rail (native snap scrolling on phones)
+    const rail = document.querySelector("[data-rail]");
+    if (rail && desktop) {
+      const track = rail.querySelector(".rail-track");
+      const dist = () => track.scrollWidth - innerWidth;
+      const move = gsap.to(track, { x: () => -dist(), ease: "none",
+        scrollTrigger: { trigger: rail, start: "top top", end: () => "+=" + dist(), scrub: 1, pin: true, invalidateOnRefresh: true } });
+      track.querySelectorAll(".fill").forEach(fill => gsap.fromTo(fill, { xPercent: -8 }, { xPercent: 8, ease: "none",
+        scrollTrigger: { trigger: fill.parentElement, containerAnimation: move, start: "left right", end: "right left", scrub: true } }));
+    }
+
+    // 5. Stack: the previous card sinks back as the next one slides over it
+    const cards = gsap.utils.toArray(".stack-card");
+    cards.slice(0, -1).forEach((card, i) => gsap.to(card, {
+      scale: 0.9, filter: "brightness(.55)", ease: "none",
+      scrollTrigger: { trigger: cards[i + 1], start: "top bottom", end: "top 12%", scrub: true },
+    }));
+
+    // 6. Magnetic buttons (mouse only)
+    if (matchMedia("(hover: hover)").matches) {
+      document.querySelectorAll("[data-magnet]").forEach(btn => {
+        const x = gsap.quickTo(btn, "x", { duration: 0.6, ease: "power3" });
+        const y = gsap.quickTo(btn, "y", { duration: 0.6, ease: "power3" });
+        btn.addEventListener("pointermove", e => {
+          const r = btn.getBoundingClientRect();
+          x((e.clientX - r.left - r.width / 2) * 0.25); y((e.clientY - r.top - r.height / 2) * 0.35);
+        });
+        btn.addEventListener("pointerleave", () => { x(0); y(0); });
+      });
+    }
+
+    // Background drift: slow and endless
+    gsap.to(".atmo", { xPercent: -6, yPercent: 4, rotate: 8, duration: 30, ease: "sine.inOut", yoyo: true, repeat: -1 });
+    gsap.to(".grain", { x: "random(-40, 40)", y: "random(-40, 40)", duration: 0.12, ease: "steps(1)", repeat: -1, repeatRefresh: true });
+  });
+
+  document.fonts.ready.then(() => ScrollTrigger.refresh());
+} else {
+  odometers.flat().forEach(({ col, steps }) => col.style.transform = `translateY(-${100 * steps / (steps + 1)}%)`);
+}
+</script>
+</body>
+</html>

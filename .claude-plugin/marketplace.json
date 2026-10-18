@@ -1,0 +1,14 @@
+{
+  "name": "motion-site",
+  "description": "Studio-grade motion design websites for Claude Code",
+  "owner": {
+    "name": "USERNAME"
+  },
+  "plugins": [
+    {
+      "name": "motion-site",
+      "source": "./plugins/motion-site",
+      "description": "Builds websites with studio-grade motion design and polishes them through a frame-by-frame self-review loop"
+    }
+  ]
+}
