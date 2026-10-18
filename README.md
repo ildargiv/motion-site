@@ -40,6 +40,34 @@ Ask any AI for "a landing page with animations" and you get the same thing: cent
 </tr>
 </table>
 
+## Showcase
+
+### Halden Atelier — Editorial direction
+A fictional architecture studio. Paper and ink, Instrument Serif, photos that open from their own edge, and a peak where a framed dune photo opens to full bleed as the page turns to ink.
+
+**[Open the live example →](https://ildargiv.github.io/motion-site/examples/editorial/)**
+
+<table>
+<tr>
+<td width="50%"><img src="media/editorial-hero.jpg" alt="Halden Atelier cover"><br><sub><b>Cover.</b> Headline rises line by line; the photo opens from its bottom edge.</sub></td>
+<td width="50%"><img src="media/editorial-peak.jpg" alt="Peak scene with a dune photo"><br><sub><b>★ Peak.</b> A small framed photo opens to full bleed while the page turns to ink.</sub></td>
+</tr>
+<tr>
+<td width="50%"><img src="media/editorial-works.jpg" alt="Selected works grid"><br><sub><b>Works.</b> An asymmetric editorial grid with image reveals and inner parallax.</sub></td>
+<td width="50%"><img src="media/editorial-method.jpg" alt="Floor plan drawing itself"><br><sub><b>Method.</b> A floor plan draws itself as you scroll, the path of the sun first.</sub></td>
+</tr>
+</table>
+
+**How the review loop shaped it** — three rounds, exactly as the skill prescribes:
+
+| Round | Worst spot found in the frame sheet | Fix |
+|---|---|---|
+| 1 | The theme change into the peak scrubbed through a muddy half-grey (scored 5/10) | A quick 0.7s crossfade when the peak starts, never a scrub |
+| 1 | Manifesto text too small, empty right side (7/10) | Larger serif, tighter measure |
+| 2 | On mobile, the fixed masthead overlapped photo captions | The masthead hides while you scroll down and returns on scroll up |
+| 2 | After the peak, a near-empty screen on mobile | Less padding before the method section |
+| 3 | All scenes at 8–9, no technical problems | Shipped |
+
 ## Everything it gives you
 
 ### 🎬 A real studio process

@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Halden Atelier — Buildings that hold the light</title>
+<meta name="description" content="Halden Atelier is a fictional architecture studio. An Editorial-direction example built with the motion-site skill for Claude Code.">
+<meta property="og:title" content="Halden Atelier — Buildings that hold the light">
+<!--
+  Built with motion-site · Art direction: EDITORIAL
+  Palette: paper #f4f1ea, ink #141312, terracotta #b4532a
+  Type: Instrument Serif (italic as accent) + Instrument Sans
+  Motion: slow and refined — images open from their own edge, text rises line by line
+
+  Storyboard
+  1  Cover      Buildings that hold the light   line masks + hero photo opens from the bottom edge
+  2  Manifesto  Quiet buildings                 read-along text
+  3  Works      Four projects                   image reveals + inner parallax
+  4★ Peak       Light is the first material     framed photo opens to full bleed, page turns to ink
+  5  Method     Three steps                     floor plan draws itself on scroll
+  6  Outro      Let's build something quiet     calm, large, long hold
+-->
+<script>
+  if (matchMedia("(prefers-reduced-motion: no-preference)").matches) {
+    document.documentElement.classList.add("motion");
+    setTimeout(() => { if (!window.gsap) document.documentElement.classList.remove("motion"); }, 2500);
+  }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/lenis@1.3.4/dist/lenis.css">
+<style>
+  :root {
+    --paper: #f4f1ea;
+    --ink: #141312;
+    --accent: #b4532a;
+    --bg: var(--paper);
+    --fg: var(--ink);
+    --muted: #6d6a63;
+    --rule: rgba(20, 19, 18, .16);
+    --serif: "Instrument Serif", Georgia, serif;
+    --sans: "Instrument Sans", system-ui, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { background: var(--bg); }
+  body { background: var(--bg); color: var(--fg); font: 17px/1.6 var(--sans); -webkit-font-smoothing: antialiased; overflow-x: hidden; }
+  img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  a { color: inherit; }
+  .wrap { width: min(1320px, 100% - 64px); margin-inline: auto; }
+  .serif { font-family: var(--serif); font-weight: 400; letter-spacing: -.02em; line-height: .92; }
+  .serif em { font-style: italic; color: var(--accent); }
+  .meta { font: 500 14px/1.4 var(--sans); letter-spacing: .02em; color: var(--muted); }
+  .meta b { color: var(--fg); font-weight: 600; }
+  .grain { position: fixed; inset: -50%; z-index: 90; pointer-events: none; opacity: .07; mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+
+  /* Masthead */
+  .mast { position: fixed; top: 0; left: 0; right: 0; z-index: 50; mix-blend-mode: difference; color: #f4f1ea; }
+  .mast .wrap { display: flex; justify-content: space-between; align-items: center; height: 72px; font: 500 14px var(--sans); }
+  .mast .brand { font: 400 24px var(--serif); letter-spacing: -.01em; text-decoration: none; }
+  .mast nav { display: flex; gap: 28px; }
+  .mast nav a { text-decoration: none; }
+
+  /* 1. Cover */
+  .cover { min-height: 100svh; padding: 120px 0 56px; }
+  .cover .wrap { display: grid; grid-template-columns: 7fr 5fr; gap: 56px; align-items: end; min-height: calc(100svh - 176px); }
+  .cover h1 { font-size: clamp(60px, 9.4vw, 172px); margin: 22px 0 36px; }
+  .cover .lead { max-width: 36ch; font-size: 19px; color: var(--muted); }
+  .cover .row { display: flex; justify-content: space-between; align-items: end; gap: 24px; border-top: 1px solid var(--rule); padding-top: 18px; }
+  .fig { position: relative; overflow: hidden; }
+  .cover .fig { aspect-ratio: 3 / 4; max-height: 76svh; justify-self: end; width: 100%; }
+  figcaption { margin-top: 12px; }
+
+  /* 2. Manifesto */
+  .manifesto { padding: 22vh 0; }
+  .manifesto p { font: 400 clamp(36px, 5.6vw, 92px)/1.02 var(--serif); letter-spacing: -.02em; max-width: 19ch; }
+  .manifesto p em { color: var(--accent); }
+  .manifesto .meta { margin-bottom: 36px; }
+
+  /* 3. Works */
+  .works { padding: 6vh 0 18vh; }
+  .works-head { display: flex; justify-content: space-between; align-items: end; border-bottom: 1px solid var(--rule); padding-bottom: 18px; margin-bottom: 64px; }
+  .works-head h2 { font-size: clamp(48px, 7vw, 120px); }
+  .grid { display: grid; grid-template-columns: repeat(12, 1fr); column-gap: 24px; row-gap: 12vh; }
+  .work .fig { aspect-ratio: var(--ar, 4/3); }
+  .work .fig img { height: 116%; margin-top: -8%; }
+  .work .cap { display: grid; grid-template-columns: 48px 1fr auto; align-items: baseline; gap: 12px; margin-top: 16px; border-top: 1px solid var(--rule); padding-top: 12px; }
+  .work .cap h3 { font: 400 clamp(26px, 2.4vw, 38px)/1 var(--serif); letter-spacing: -.01em; }
+  .w1 { grid-column: 1 / 9; --ar: 16/10; }
+  .w2 { grid-column: 9 / 13; --ar: 3/4; margin-top: 22vh; }
+  .w3 { grid-column: 2 / 6; --ar: 4/5; }
+  .w4 { grid-column: 7 / 13; --ar: 5/4; margin-top: 14vh; }
+
+  /* 4. Peak */
+  .peak { height: 100svh; position: relative; overflow: hidden; }
+  .peak .frame { position: absolute; inset: 0; clip-path: inset(24% 34% 24% 34%); will-change: clip-path; }
+  .peak .frame img { transform: scale(1.3); will-change: transform; }
+  .peak .quote { position: absolute; inset: 0; display: grid; place-items: center; text-align: center; padding: 24px; color: #f4f1ea; pointer-events: none; }
+  .peak .quote h2 { font-size: clamp(48px, 8.4vw, 150px); max-width: 12ch; text-shadow: 0 2px 40px rgba(0,0,0,.25); }
+  .peak .quote h2 em { color: #f4f1ea; }
+  .peak .label { position: absolute; left: 0; right: 0; bottom: 32px; color: #f4f1ea; opacity: .8; }
+
+  /* 5. Method */
+  .method { padding: 20vh 0; }
+  .method .wrap { display: grid; grid-template-columns: 1fr 1fr; gap: 80px; align-items: center; }
+  .plan { width: 100%; max-width: 620px; aspect-ratio: 1; }
+  .plan path, .plan line, .plan rect, .plan circle { fill: none; stroke: var(--fg); stroke-width: 2; vector-effect: non-scaling-stroke; }
+  .plan .sun { stroke: var(--accent); stroke-width: 2; }
+  .plan .thin { stroke-width: 1.1; opacity: .6; }
+  .steps { list-style: none; display: grid; gap: 44px; }
+  .steps li { display: grid; grid-template-columns: 70px 1fr; border-top: 1px solid var(--rule); padding-top: 18px; }
+  .steps .n { font: italic 400 34px/1 var(--serif); color: var(--accent); }
+  .steps h3 { font: 400 clamp(30px, 2.8vw, 44px)/1 var(--serif); letter-spacing: -.01em; margin-bottom: 10px; }
+  .steps p { color: var(--muted); max-width: 40ch; }
+
+  /* 6. Outro */
+  .outro { padding: 22vh 0 12vh; }
+  .outro h2 { font-size: clamp(56px, 10vw, 190px); max-width: 11ch; }
+  .outro .row { display: flex; justify-content: space-between; align-items: end; gap: 24px; margin-top: 64px; border-top: 1px solid var(--rule); padding-top: 18px; flex-wrap: wrap; }
+  .mail { font: italic 400 clamp(28px, 3vw, 44px) var(--serif); text-decoration: none; border-bottom: 1px solid currentColor; }
+  footer { padding: 40px 0 56px; }
+  footer .wrap { display: flex; justify-content: space-between; gap: 24px; flex-wrap: wrap; }
+  footer a { text-underline-offset: 3px; }
+
+  .motion [data-lines] { visibility: hidden; }
+
+  @media (max-width: 900px) {
+    .wrap { width: calc(100% - 40px); }
+    .mast nav { display: none; }
+    .cover .wrap { grid-template-columns: 1fr; gap: 36px; }
+    .cover .fig { max-height: 64svh; }
+    .grid { row-gap: 64px; }
+    .w1, .w2, .w3, .w4 { grid-column: 1 / -1; margin-top: 0; }
+    .method { padding: 10vh 0 14vh; }
+    .method .wrap { grid-template-columns: 1fr; gap: 48px; }
+    .peak .frame { clip-path: inset(18% 12% 18% 12%); }
+  }
+  @media (max-width: 520px) {
+    .steps li { grid-template-columns: 52px 1fr; }
+    .work .cap { grid-template-columns: 36px 1fr; }
+    .work .cap .meta:last-child { grid-column: 2; }
+  }
+</style>
+</head>
+<body>
+<div class="grain"></div>
+
+<header class="mast">
+  <div class="wrap">
+    <a class="brand" href="#top">Halden Atelier</a>
+    <nav><a href="#works">Works</a><a href="#method">Method</a><a href="#contact">Contact</a></nav>
+  </div>
+</header>
+
+<main id="top">
+  <section class="cover">
+    <div class="wrap">
+      <div>
+        <p class="meta" data-fade><b>Halden Atelier</b> — Architecture &amp; light</p>
+        <h1 class="serif" data-lines>Buildings that hold the <em>light</em></h1>
+        <div class="row" data-fade>
+          <p class="lead">We design quiet houses, libraries, and rooms that change with the hour.</p>
+          <a class="meta" href="#works">Selected works ↓</a>
+        </div>
+      </div>
+      <figure>
+        <div class="fig" data-reveal><img src="img/hero.jpg" alt="White vaulted arches lit by warm light"></div>
+        <figcaption class="meta" data-fade>Fig. 1 — A study of vaults and morning light</figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section class="manifesto">
+    <div class="wrap">
+      <p class="meta" data-fade>Manifesto</p>
+      <p data-read>A house should feel different at seven in the morning than at seven at night — and <em>both</em> should feel like home. We build with thick walls, deep windows, and very few gestures.</p>
+    </div>
+  </section>
+
+  <section class="works" id="works">
+    <div class="wrap">
+      <div class="works-head">
+        <h2 class="serif" data-lines>Selected <em>works</em></h2>
+        <p class="meta" data-fade>Four projects</p>
+      </div>
+      <div class="grid">
+        <article class="work w1"><div class="fig" data-reveal><img src="img/stair.jpg" alt="Stone stairs along a pale wall"></div>
+          <div class="cap"><span class="meta">01</span><h3>Stair House</h3><span class="meta">Residence</span></div></article>
+        <article class="work w2"><div class="fig" data-reveal><img src="img/library.jpg" alt="Curved library shelves under a glass roof"></div>
+          <div class="cap"><span class="meta">02</span><h3>Reading Room</h3><span class="meta">Library</span></div></article>
+        <article class="work w3"><div class="fig" data-reveal><img src="img/tower.jpg" alt="A glass tower seen from below"></div>
+          <div class="cap"><span class="meta">03</span><h3>Tower Nine</h3><span class="meta">Offices</span></div></article>
+        <article class="work w4"><div class="fig" data-reveal><img src="img/facade.jpg" alt="A ribbed facade meeting at a sharp corner"></div>
+          <div class="cap"><span class="meta">04</span><h3>The Corner</h3><span class="meta">Housing</span></div></article>
+      </div>
+    </div>
+  </section>
+
+  <section class="peak" data-peak>
+    <div class="frame"><img src="img/dune.jpg" alt="A sand dune ridge split into light and shadow"></div>
+    <div class="quote"><h2 class="serif" data-lines="scrub">Light is the first <em>material</em></h2></div>
+    <div class="label"><div class="wrap meta" style="color:inherit">Fig. 2 — The line between light and shadow</div></div>
+  </section>
+
+  <section class="method" id="method">
+    <div class="wrap">
+      <svg class="plan" viewBox="0 0 600 600" aria-label="A floor plan drawing itself, with the path of the sun">
+        <path class="sun" d="M40 150 Q300 -40 560 150" stroke-dasharray="1 0"/>
+        <circle class="sun" cx="300" cy="55" r="16"/>
+        <line class="sun thin" x1="300" y1="80" x2="210" y2="250"/>
+        <line class="sun thin" x1="300" y1="80" x2="300" y2="250"/>
+        <line class="sun thin" x1="300" y1="80" x2="390" y2="250"/>
+        <path d="M110 250 H250 M350 250 H490 V540 H110 V250"/>
+        <path d="M110 400 H230 M290 400 H330 M390 400 H490"/>
+        <path d="M300 400 V540"/>
+        <path d="M230 400 A60 60 0 0 1 290 340"/>
+        <path d="M330 400 A60 60 0 0 0 390 340"/>
+        <rect class="thin" x="150" y="290" width="100" height="70"/>
+        <rect class="thin" x="350" y="440" width="110" height="70"/>
+        <path class="thin" d="M140 450 H270 M140 480 H270 M140 510 H270"/>
+      </svg>
+      <ol class="steps">
+        <li data-step><span class="n">I</span><div><h3>Read the site</h3><p>We spend a full day on the plot, from sunrise to dusk, before drawing a single line.</p></div></li>
+        <li data-step><span class="n">II</span><div><h3>Draw the section</h3><p>Plans show rooms; sections show light. We start with the section.</p></div></li>
+        <li data-step><span class="n">III</span><div><h3>Tune the openings</h3><p>Every window is placed for a particular hour of the day.</p></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <section class="outro" id="contact">
+    <div class="wrap">
+      <h2 class="serif" data-lines>Let's build something <em>quiet</em></h2>
+      <div class="row" data-fade>
+        <a class="mail" href="mailto:studio@halden.example">studio@halden.example</a>
+        <p class="meta">A fictional studio.<br>An example built with motion-site.</p>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <div class="wrap meta">
+    <span>Built with <a href="https://github.com/ildargiv/motion-site">motion-site</a> · Editorial direction</span>
+    <span>Photos on Unsplash by
+      <a href="https://unsplash.com/photos/u3gES0SUsnI">Jeff Sheldon</a>,
+      <a href="https://unsplash.com/photos/dFkCXUMB4r4">Elisabetta Foco</a>,
+      <a href="https://unsplash.com/photos/xiTFENI0dMY">Patrik Göthe</a>,
+      <a href="https://unsplash.com/photos/rM7B4DheQc0">Mike Wilson</a>,
+      <a href="https://unsplash.com/photos/WlD3vixTVUg">Samuel Zeller</a>,
+      <a href="https://unsplash.com/photos/HJSIZsC4te8">Fabio Rose</a></span>
+  </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/lenis@1.3.4/dist/lenis.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/gsap.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/ScrollTrigger.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/gsap@3.13.0/dist/SplitText.min.js"></script>
+<script>
+if (window.gsap) {
+  gsap.registerPlugin(ScrollTrigger, SplitText);
+  const EASE = { enter: "expo.out", slow: "power3.out" };
+
+  const lenis = new Lenis({ autoRaf: false, lerp: 0.08 });
+  lenis.on("scroll", ScrollTrigger.update);
+  gsap.ticker.add(t => lenis.raf(t * 1000));
+  gsap.ticker.lagSmoothing(0);
+  document.querySelectorAll('a[href^="#"]').forEach(a => a.addEventListener("click", e => {
+    const t = document.querySelector(a.getAttribute("href"));
+    if (t) { e.preventDefault(); lenis.scrollTo(t, { duration: 1.8 }); }
+  }));
+
+  const root = document.documentElement;
+  const mm = gsap.matchMedia();
+  mm.add({ motion: "(prefers-reduced-motion: no-preference)", desktop: "(min-width: 901px)" }, ctx => {
+    const { motion, desktop } = ctx.conditions;
+    if (!motion) return;
+
+    // Headlines: line by line, slow — the editorial rhythm
+    document.querySelectorAll("[data-lines]").forEach(el => {
+      const scrub = el.dataset.lines === "scrub";
+      const inCover = el.closest(".cover");
+      SplitText.create(el, { type: "lines", mask: "lines", autoSplit: true, onSplit(self) {
+        gsap.set(el, { visibility: "visible" });
+        return gsap.from(self.lines, { yPercent: 105, duration: 1.4, ease: EASE.enter, stagger: .12, delay: inCover ? .3 : 0,
+          scrollTrigger: inCover ? null : scrub
+            ? { trigger: el.closest("section"), start: "top 20%", end: "+=55%", scrub: 1 }
+            : { trigger: el, start: "top 85%" } });
+      } });
+    });
+
+    gsap.utils.toArray("[data-fade]").forEach(el => {
+      const inCover = el.closest(".cover");
+      gsap.from(el, { y: 20, autoAlpha: 0, duration: 1.2, ease: EASE.slow, delay: inCover ? 1.1 : 0,
+        scrollTrigger: inCover ? null : { trigger: el, start: "top 90%" } });
+    });
+    gsap.from(".mast", { autoAlpha: 0, duration: 1.2, delay: .2 });
+    // The masthead steps aside while you read and comes back when you scroll up
+    const hideMast = gsap.to(".mast", { yPercent: -100, duration: .5, ease: "power3.inOut", paused: true });
+    ScrollTrigger.create({ start: 120, end: "max", onUpdate: self => self.direction > 0 ? hideMast.play() : hideMast.reverse() });
+
+    // Images open from their own bottom edge; the photo settles from a slight zoom
+    gsap.utils.toArray("[data-reveal]").forEach(fig => {
+      const inCover = fig.closest(".cover");
+      const opts = inCover ? { delay: .5 } : { scrollTrigger: { trigger: fig, start: "top 85%" } };
+      gsap.fromTo(fig, { clipPath: "inset(100% 0% 0% 0%)" }, { clipPath: "inset(0% 0% 0% 0%)", duration: 1.6, ease: EASE.enter, ...opts });
+      gsap.from(fig.querySelector("img"), { scale: 1.25, duration: 2.2, ease: EASE.enter, ...opts });
+    });
+
+    // Parallax inside each work image
+    gsap.utils.toArray(".work .fig img").forEach(img => gsap.fromTo(img, { yPercent: -6 }, { yPercent: 6, ease: "none",
+      scrollTrigger: { trigger: img.parentElement, start: "top bottom", end: "bottom top", scrub: true } }));
+
+    // Manifesto reads along with you
+    const read = document.querySelector("[data-read]");
+    SplitText.create(read, { type: "words", autoSplit: true, onSplit: s =>
+      gsap.fromTo(s.words, { opacity: .14 }, { opacity: 1, stagger: .1, ease: "none",
+        scrollTrigger: { trigger: read, start: "top 78%", end: "bottom 50%", scrub: true } }) });
+
+    // ★ Peak: the framed photo opens to full bleed and the page turns to ink
+    const peak = document.querySelector("[data-peak]");
+    gsap.timeline({ scrollTrigger: { trigger: peak, start: "top top", end: desktop ? "+=170%" : "+=90%", scrub: 1, pin: true } })
+      .to(peak.querySelector(".frame"), { clipPath: "inset(0% 0% 0% 0%)", ease: "none", duration: 1 })
+      .to(peak.querySelector(".frame img"), { scale: 1, ease: "none", duration: 1 }, 0)
+      .to({}, { duration: .5 });
+    // The page turns to ink for the peak — a quick crossfade, never a muddy half-grey scrub
+    const INK = { "--bg": "#141312", "--fg": "#f4f1ea", "--muted": "#a39e94", "--rule": "rgba(244,241,234,.18)" };
+    const PAPER = { "--bg": "#f4f1ea", "--fg": "#141312", "--muted": "#6d6a63", "--rule": "rgba(20,19,18,.16)" };
+    ScrollTrigger.create({ trigger: peak, start: "top 45%", endTrigger: ".method", end: "top 55%",
+      onToggle: self => gsap.to(root, { ...(self.isActive ? INK : PAPER), duration: .7, ease: "power2.inOut", overwrite: true }) });
+
+    // Method: the plan draws itself, the sun first
+    const plan = document.querySelector(".plan");
+    const shapes = plan.querySelectorAll("path, line, rect, circle");
+    shapes.forEach(s => { const len = s.getTotalLength(); gsap.set(s, { strokeDasharray: len, strokeDashoffset: len }); });
+    gsap.to(shapes, { strokeDashoffset: 0, ease: "none", stagger: .15,
+      scrollTrigger: { trigger: plan, start: "top 75%", end: "bottom 45%", scrub: 1 } });
+    gsap.from("[data-step]", { y: 30, autoAlpha: 0, duration: 1.2, ease: EASE.slow, stagger: .2,
+      scrollTrigger: { trigger: ".steps", start: "top 75%" } });
+  });
+
+  document.fonts.ready.then(() => ScrollTrigger.refresh());
+}
+</script>
+</body>
+</html>
