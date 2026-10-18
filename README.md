@@ -7,7 +7,7 @@
 A Claude Code skill that turns Claude into a motion design studio.<br>
 Art direction → scroll storyboard → build → **frame-by-frame self-review until every scene scores 9/10.**
 
-[**Live demo**](https://USERNAME.github.io/motion-site/) · [Install](#install) · [Example prompts](#example-prompts) · [How it works](#how-it-works) · [What's inside](#whats-inside)
+[**Live demo**](https://ildargiv.github.io/motion-site/) · [Install](#install) · [Example prompts](#example-prompts) · [How it works](#how-it-works) · [What's inside](#whats-inside)
 
 ![Hero of the demo page](media/hero.jpg)
 
@@ -89,21 +89,21 @@ A hard "never" list: no centered-text-on-gradient as the idea, no bounces, neon 
 Inside Claude Code:
 
 ```
-/plugin marketplace add USERNAME/motion-site
+/plugin marketplace add ildargiv/motion-site
 /plugin install motion-site@motion-site
 ```
 
 Or from your shell:
 
 ```bash
-claude plugin marketplace add USERNAME/motion-site
+claude plugin marketplace add ildargiv/motion-site
 claude plugin install motion-site@motion-site
 ```
 
 ### As a plain skill
 
 ```bash
-git clone https://github.com/USERNAME/motion-site.git
+git clone https://github.com/ildargiv/motion-site.git
 cp -r motion-site/plugins/motion-site/skills/motion-site ~/.claude/skills/
 ```
 

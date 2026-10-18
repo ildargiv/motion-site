@@ -3,7 +3,7 @@
   "description": "Builds websites with studio-grade motion design and polishes them through a frame-by-frame self-review loop",
   "version": "1.0.0",
   "author": {
-    "name": "USERNAME"
+    "name": "ildargiv"
   },
   "license": "MIT",
   "keywords": ["motion-design", "gsap", "scrolltrigger", "landing-page", "animation", "web-design"]
