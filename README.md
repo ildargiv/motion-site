@@ -2,6 +2,8 @@
 
 # motion-site
 
+[![license](https://img.shields.io/badge/license-MIT-blue.svg)](https://github.com/ildargiv/motion-site/blob/main/LICENSE) [![Claude Code skill](https://img.shields.io/badge/Claude%20Code-skill-D97757)](https://claude.com/claude-code)
+
 ### Motion that means something.
 
 A Claude Code skill that turns Claude into a motion design studio.<br>
